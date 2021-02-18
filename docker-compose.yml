@@ -1,0 +1,166 @@
+version: '3.4'
+
+# using latest tag, which is default. should change that in the future.
+services:
+
+  eureka:
+    image: vs-lab/eureka
+    networks:
+      - some-net
+    container_name: eureka
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8761:8761"
+              
+  zuul:
+    image: vs-lab/gateway
+    networks:
+      - some-net
+    container_name: zuul
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "8100:8100"
+    depends_on:
+      - eureka
+
+  catalog:
+    networks:
+      - some-net
+    image: vs-lab/catalog
+    container_name: catalog
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_REDIS_URL: redis
+    ports:
+      - "8092:8092"
+    depends_on:
+      - eureka
+      - redis
+
+  redis:
+    image: redis
+    networks:
+      - some-net
+    command: redis-server --requirepass test
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  categories:
+    image: vs-lab/categories
+    container_name: categories
+    networks:
+      - some-net
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://categories-db/categories
+      SPRING_DATASOURCE_USERNAME: categories
+      SPRING_DATASOURCE_PASSWORD: categories
+    ports:
+      - "8094:8094"
+    depends_on:
+      - eureka
+      - categories-db
+
+
+  categories-db:
+    container_name: categories-db
+    networks:
+      - some-net
+    image: mysql:5.7
+    volumes:
+      - categories_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: categories
+      MYSQL_USER: categories
+      MYSQL_PASSWORD: categories
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "3306:3306"
+
+  products:
+    image: vs-lab/products
+    container_name: products
+    networks:
+      - some-net
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://products-db/products
+      SPRING_DATASOURCE_USERNAME: products
+      SPRING_DATASOURCE_PASSWORD: products
+    ports:
+      - "8091:8091"
+    depends_on:
+      - eureka
+      - products-db
+
+  products-db:
+    container_name: products-db
+    networks:
+      - some-net
+    image: mysql:5.7
+    volumes:
+      - products_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: products
+      MYSQL_USER: products
+      MYSQL_PASSWORD: products
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "3307:3306"
+
+  users:
+    image: vs-lab/users
+    container_name: users
+    networks:
+      - some-net
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://users-db/users
+      SPRING_DATASOURCE_USERNAME: users
+      SPRING_DATASOURCE_PASSWORD: users
+    ports:
+      - "8093:8093"
+    depends_on:
+      - eureka
+      - users-db
+
+  users-db:
+    image: mysql:5.7
+    container_name: users-db
+    volumes:
+      - users_data:/var/lib/mysql
+    restart: always
+    networks:
+      - some-net
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: users
+      MYSQL_USER: users
+      MYSQL_PASSWORD: users
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "3308:3306"
+
+  # Add legacy webshop dockers
+  legacywebshop:
+    image: vs-lab/hska-eshop
+    networks:
+      - some-net
+    ports:
+      - "8888:8080"
+
+volumes:
+  products_data: {}
+  categories_data: {}
+  users_data: {}
+
+networks:
+  some-net:
+    driver: bridge

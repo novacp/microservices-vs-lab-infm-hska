@@ -1,0 +1,6 @@
+todo: optional requirement
+
+(1) implement refresh token revocation by storing refresh token's id and hash in a database during revoke or logout
+    -> create two new controller actions
+(2) Inject into oauth refresh token validation mechanism to check if token has been revoked
+

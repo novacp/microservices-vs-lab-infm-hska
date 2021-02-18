@@ -1,0 +1,31 @@
+server:
+  port: 8100
+
+spring:
+  application:
+    name: zuul
+  profiles:
+    active: dev
+
+eureka:
+  client:
+    enabled: false
+
+zuul:
+  sensitive-headers: Cookie,Set-Cookie
+  routes:
+    login:
+      path: /oauth/**
+      url: http://users:8093
+      sensitive-headers:
+      stripPrefix: false
+    catalog:
+      path: /api/catalog/**
+      url: http://catalog:8092
+      sensitive-headers:
+      stripPrefix: false
+    users:
+      path: /api/users/**
+      url: http://users:8093
+      sensitive-headers:
+      stripPrefix: false

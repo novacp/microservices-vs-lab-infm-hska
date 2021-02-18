@@ -1,0 +1,16 @@
+service:
+  categories: http://localhost:8094/categories
+  products: http://localhost:8091/products
+
+server:
+  port: 8092
+
+spring:
+  application:
+    name: catalog
+  profiles:
+    active: dev
+
+eureka:
+  client:
+    enabled: false
